@@ -128,3 +128,55 @@ void Network::print_traj(const int time, const std::map<std::string, size_t> &_n
             }
     (*_out) << std::endl;
 }
+
+
+
+
+
+
+std::vector<std::pair<size_t, double>> Network::neighbors(const size_t& n) const {
+  
+  std::vector<std::pair<size_t, double>> neighbors;
+
+  for (auto& link : links) {
+    if (link.first.first == n) {
+		neighbors.push_back(std::make_pair(link.first.second, link.second));
+	}
+  }
+  return neighbors;
+}
+
+
+std::pair<size_t, double> Network::degree(const size_t& n) const {
+	
+  double intensity(0.0);
+
+  for (auto& neighbor : neighbors(n)) {
+	  intensity += neighbor.second;
+  }
+  return std::make_pair(neighbors(n).size(), intensity);
+}
+
+
+
+std::set<size_t> Network::step(const std::vector<double>& thalamic) {
+  
+  std::set<size_t> firing_neurons;
+  for (size_t i(0); i< size(); ++i){
+    
+    if (neurons[i].firing()) {
+		firing_neurons.insert(i);
+		neurons[i].reset();
+    }
+    
+    double inibitory_factor (1.0);
+    if (neurons[i].is_inhibitory()) inibitory_factor=0.4;
+	
+	neurons[i].input(thalamic[i]*inibitory_factor);
+    neurons[i].step();
+  }
+
+  return firing_neurons;
+}
+
+ 
